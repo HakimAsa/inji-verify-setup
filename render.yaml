@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: inji-verify-setup-fr
+    runtime: static
+    buildCommand: ""
+    staticPublishPath: docs/fr
+    pullRequestPreviewsEnabled: false
