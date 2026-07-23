@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Inji Verify — Configuration avec Docker Compose</title>
+<meta name="description" content="Guide de configuration et d'exécution d'Inji Verify avec Docker Compose." />
+<style>
+  :root {
+    --bg: #F5F7FA;
+    --surface: #FFFFFF;
+    --surface-alt: #EAEEF5;
+    --ink: #161A22;
+    --ink-soft: #545E6E;
+    --border: #DCE2EA;
+    --accent: #2851D6;
+    --accent-strong: #17359C;
+    --verified: #128F6E;
+    --tip-bg: #E7F5F0;
+    --tip-border: #128F6E;
+    --tip-ink: #0C5C46;
+    --warn-bg: #FBF0DC;
+    --warn-border: #C9861A;
+    --warn-ink: #6B4A12;
+    --code-bg: #10131B;
+    --code-ink: #DCE3EE;
+    --code-border: #262B38;
+    --chip-bg: #EAEEF5;
+
+    --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0D1016;
+      --surface: #151A23;
+      --surface-alt: #1B2230;
+      --ink: #E7EAF1;
+      --ink-soft: #97A1B3;
+      --border: #29303F;
+      --accent: #7096FF;
+      --accent-strong: #A9C0FF;
+      --verified: #4ECBA1;
+      --tip-bg: #12241E;
+      --tip-border: #4ECBA1;
+      --tip-ink: #9EE9CD;
+      --warn-bg: #251E0D;
+      --warn-border: #C9922E;
+      --warn-ink: #E7C583;
+      --code-bg: #090B10;
+      --code-ink: #DCE3EE;
+      --code-border: #20242E;
+      --chip-bg: #1B2230;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0D1016;
+    --surface: #151A23;
+    --surface-alt: #1B2230;
+    --ink: #E7EAF1;
+    --ink-soft: #97A1B3;
+    --border: #29303F;
+    --accent: #7096FF;
+    --accent-strong: #A9C0FF;
+    --verified: #4ECBA1;
+    --tip-bg: #12241E;
+    --tip-border: #4ECBA1;
+    --tip-ink: #9EE9CD;
+    --warn-bg: #251E0D;
+    --warn-border: #C9922E;
+    --warn-ink: #E7C583;
+    --code-bg: #090B10;
+    --code-ink: #DCE3EE;
+    --code-border: #20242E;
+    --chip-bg: #1B2230;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #F5F7FA;
+    --surface: #FFFFFF;
+    --surface-alt: #EAEEF5;
+    --ink: #161A22;
+    --ink-soft: #545E6E;
+    --border: #DCE2EA;
+    --accent: #2851D6;
+    --accent-strong: #17359C;
+    --verified: #128F6E;
+    --tip-bg: #E7F5F0;
+    --tip-border: #128F6E;
+    --tip-ink: #0C5C46;
+    --warn-bg: #FBF0DC;
+    --warn-border: #C9861A;
+    --warn-ink: #6B4A12;
+    --code-bg: #10131B;
+    --code-ink: #DCE3EE;
+    --code-border: #262B38;
+    --chip-bg: #EAEEF5;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation: none !important; transition: none !important; }
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent-strong); text-decoration-color: color-mix(in srgb, var(--accent-strong) 40%, transparent); text-underline-offset: 3px; }
+  a:hover { text-decoration-thickness: 2px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -999px;
+    top: auto;
+  }
+  .skip-link:focus {
+    left: 1rem;
+    top: 1rem;
+    z-index: 100;
+    background: var(--surface);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  header.masthead {
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .masthead-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 2.25rem;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--verified);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--verified);
+    display: inline-block;
+  }
+
+  h1.title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1.15;
+    margin: 0.6rem 0 0.5rem;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .subtitle {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    max-width: 46rem;
+    margin: 0 0 1.4rem;
+    text-wrap: pretty;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    background: var(--chip-bg);
+    border: 1px solid var(--border);
+    color: var(--ink-soft);
+  }
+
+  .lang-note {
+    margin-top: 1.25rem;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+  .lang-note a { color: var(--ink-soft); }
+
+  .layout {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 5rem;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 700px);
+    gap: 3rem;
+    align-items: start;
+  }
+
+  nav.toc {
+    position: sticky;
+    top: 2rem;
+    font-size: 0.9rem;
+  }
+  nav.toc .toc-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 0.75rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    border-left: 1px solid var(--border);
+  }
+  nav.toc li { display: block; }
+  nav.toc a {
+    display: block;
+    padding: 0.4rem 0 0.4rem 0.85rem;
+    margin-left: -1px;
+    border-left: 2px solid transparent;
+    color: var(--ink-soft);
+    text-decoration: none;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  nav.toc a:hover { color: var(--ink); }
+  nav.toc a.active {
+    color: var(--accent-strong);
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+
+  main { min-width: 0; }
+
+  section { margin-bottom: 3rem; scroll-margin-top: 1.5rem; }
+  section:last-child { margin-bottom: 0; }
+
+  h2 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0 0 1rem;
+    text-wrap: balance;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  h2 .step {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    font-weight: 400;
+  }
+
+  h3 {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 1.75rem 0 0.75rem;
+  }
+
+  p { margin: 0 0 1rem; max-width: 42rem; }
+  ul, ol.steps { margin: 0 0 1rem; padding-left: 1.3rem; }
+  li { margin-bottom: 0.35rem; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.87em;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+  }
+
+  .term {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 0 0 1.1rem;
+  }
+  .term-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--code-border);
+  }
+  .term-bar span {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--code-border);
+  }
+  .term-label {
+    margin-left: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: #7A8296;
+  }
+  .term pre {
+    margin: 0;
+    padding: 0.9rem 1rem 1.05rem;
+    overflow-x: auto;
+  }
+  .term code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--code-ink);
+    font-size: 0.87rem;
+    line-height: 1.6;
+  }
+  .term .comment { color: #7A8296; }
+
+  pre.block {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    margin: 0 0 1.1rem;
+  }
+  pre.block code {
+    background: none; border: none; padding: 0;
+    font-size: 0.85rem;
+    color: var(--ink);
+  }
+
+  .callout {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    margin: 0 0 1.1rem;
+    font-size: 0.94rem;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .callout-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .callout.warn {
+    background: var(--warn-bg);
+    border-left-color: var(--warn-border);
+    color: var(--warn-ink);
+  }
+  .callout.warn .callout-label { color: var(--warn-border); }
+  .callout.tip {
+    background: var(--tip-bg);
+    border-left-color: var(--tip-border);
+    color: var(--tip-ink);
+  }
+  .callout.tip .callout-label { color: var(--tip-border); }
+
+  .table-wrap { overflow-x: auto; margin: 0 0 1.1rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 32rem;
+    font-size: 0.92rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  td code { white-space: nowrap; }
+
+  .services {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+    margin: 0 0 1.1rem;
+  }
+  .service {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    background: var(--surface);
+  }
+  .service .name {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--accent-strong);
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+  .service .role {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+
+  hr.rule {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2.5rem 0;
+  }
+
+  footer {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: static; margin-bottom: 1rem; }
+    nav.toc ol { flex-direction: row; flex-wrap: wrap; border-left: none; gap: 0.4rem; }
+    nav.toc li { }
+    nav.toc a {
+      border-left: none;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.3rem 0.7rem;
+      margin-left: 0;
+    }
+    nav.toc a.active { background: var(--surface-alt); }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">Inji Verify · Documentation</p>
+    <h1 class="title">Configuration avec Docker Compose</h1>
+    <p class="subtitle">Déployez Inji Verify en local — service de vérification, interface web et base de données — en quelques commandes, pour une démonstration rapide.</p>
+    <div class="chips">
+      <span class="chip">Docker</span>
+      <span class="chip">Docker Compose</span>
+      <span class="chip">PostgreSQL</span>
+      <span class="chip">OpenID4VP</span>
+    </div>
+    <p class="lang-note">Traduction française du guide original · <a href="https://github.com/inji/inji-verify/blob/master/docker-compose/README.md">voir la version anglaise sur GitHub ↗</a></p>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="Sommaire">
+    <p class="toc-label">Sommaire</p>
+    <ol>
+      <li><a href="#prerequis">Prérequis</a></li>
+      <li><a href="#webwallets">Portefeuilles Web</a></li>
+      <li><a href="#openid4vp">Configuration OpenID4VP</a></li>
+      <li><a href="#proxy">Proxy pour localhost</a></li>
+      <li><a href="#multi-appareils">Flux multi-appareils</a></li>
+      <li><a href="#meme-appareil">Flux même appareil</a></li>
+      <li><a href="#execution">Exécution</a></li>
+      <li><a href="#depannage">Dépannage</a></li>
+    </ol>
+  </nav>
+
+  <main id="contenu">
+
+    <section id="prerequis">
+      <h2><span class="step">01</span> Prérequis</h2>
+      <h3>Docker</h3>
+      <ul>
+        <li><a href="https://docs.docker.com/engine/install/ubuntu/">Installation sur Ubuntu</a></li>
+        <li><a href="https://docs.docker.com/desktop/install/windows-install/">Docker Desktop pour Windows</a></li>
+        <li><a href="https://docs.docker.com/engine/install/">Autres plateformes</a></li>
+      </ul>
+
+      <h3>Docker Compose</h3>
+      <div class="callout tip">
+        <span class="callout-label">Remarque</span>
+        <p>Nécessite l'installation préalable de Docker. Cette étape peut être ignorée si Docker Desktop (Windows) est installé, car il inclut déjà Docker Compose. Installez Docker via les liens ci-dessus avant de poursuivre.</p>
+      </div>
+      <ul>
+        <li><a href="https://docs.docker.com/compose/install/#scenario-two-install-the-compose-plugin">Installer en tant que plugin de la commande docker</a></li>
+        <li><a href="https://docs.docker.com/compose/install/#scenario-three-install-the-compose-standalone">Installer Docker Compose en version autonome</a></li>
+      </ul>
+      <p>Une fois l'installation terminée, suivez la section <a href="#execution">Exécution</a> pour lancer Inji Verify en local, à des fins de démonstration.</p>
+    </section>
+
+    <hr class="rule" />
+
+    <section id="webwallets">
+      <h2><span class="step">02</span> Configuration des portefeuilles Web</h2>
+      <p>Le tableau <code>WebWallets</code> du fichier <code>config/config.json</code> définit le ou les portefeuilles web disponibles pour le flux VP sur un même appareil (Same Device).</p>
+
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><span class="term-label">config/config.json</span></div>
+        <pre><code>"WebWallets": [
+  {
+    "id": "inji-wallet",
+    "name": "Inji Wallet",
+    "iconUrl": "/assets/inji-web-wallet-icon.svg",
+    "walletBaseUrl": "https://injiweb.dev-int-inji.mosip.net"
+  }
+]</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-label">Dépendance externe</span>
+        <p>La valeur par défaut de <code>walletBaseUrl</code> pointe vers une instance de développement/intégration partagée d'Inji Web Wallet, hébergée par MOSIP. Les flux de portefeuille échoueront silencieusement si cet hôte est indisponible, retiré ou inaccessible depuis votre réseau.</p>
+      </div>
+
+      <p><strong>Avant d'exécuter l'application en local</strong>, remplacez <code>walletBaseUrl</code> par l'une des valeurs suivantes :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Scénario</th><th>Valeur de <code>walletBaseUrl</code></th></tr></thead>
+          <tbody>
+            <tr><td>Instance Inji Web Wallet déployée par vous-même</td><td><code>https://&lt;votre-hote-inji-web-wallet&gt;</code></td></tr>
+            <tr><td>Inji Web Wallet en local (port par défaut)</td><td><code>http://localhost:3001</code></td></tr>
+            <tr><td>Simuler / désactiver l'entrée</td><td>Supprimer l'entrée du tableau</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><span class="term-label">config/config.json</span></div>
+        <pre><code>"WebWallets": [
+  {
+    "id": "inji-wallet",
+    "name": "Inji Wallet",
+    "iconUrl": "/assets/inji-web-wallet-icon.svg",
+    "walletBaseUrl": "http://localhost:3001"
+  }
+]</code></pre>
+      </div>
+
+      <p>Voir <a href="https://github.com/mosip/inji-web">Inji Web Wallet</a> pour les instructions d'installation d'une instance personnelle.</p>
+    </section>
+
+    <hr class="rule" />
+
+    <section id="openid4vp">
+      <h2><span class="step">03</span> Configuration OpenID4VP</h2>
+      <p>Le fichier de configuration se trouve dans le répertoire <code>config</code>.</p>
+
+      <h3>Exemple commenté : « MOSIP ID »</h3>
+      <p>Prenons l'exemple « MOSIP ID » pour comprendre comment ces propriétés fonctionnent ensemble :</p>
+
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><span class="term-label">config/config.json</span></div>
+        <pre><code>{
+  "logo": "/assets/cert.png",
+  "name": "MOSIP ID",
+  "type": "MOSIPVerifiableCredential",
+  "essential": true,
+  "clientIdScheme": "did",
+  "definition": {
+    "purpose": "Relying party is requesting your digital ID for the purpose of Self-Authentication",
+    "format": {
+      "ldp_vc": { "proof_type": ["RsaSignature2018"] }
+    },
+    "input_descriptors": [
+      {
+        "id": "id card credential",
+        "format": {
+          "ldp_vc": { "proof_type": ["RsaSignature2018"] }
+        },
+        "constraints": {
+          "fields": [
+            {
+              "path": ["$.type"],
+              "filter": {
+                "type": "object",
+                "pattern": "MOSIPVerifiableCredential"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}</code></pre>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Propriété</th><th>Rôle</th></tr></thead>
+          <tbody>
+            <tr><td><code>logo</code></td><td>Image affichée sur le panneau de sélection des identifiants (<code>/assets/cert.png</code>).</td></tr>
+            <tr><td><code>name</code></td><td>Nom affiché sur le panneau de sélection des identifiants.</td></tr>
+            <tr><td><code>type</code></td><td>Identifie en interne le type d'identifiant concerné.</td></tr>
+            <tr><td><code>essential</code></td><td>Cet identifiant est requis pour que la vérification réussisse.</td></tr>
+            <tr><td><code>clientIdScheme: did</code></td><td>La requête VP utilise <code>did</code> comme <code>client_id_scheme</code> ; la requête d'authentification est accessible au portefeuille via <code>request_uri</code>.</td></tr>
+            <tr><td><code>clientIdScheme: pre_registered</code></td><td>La requête VP utilise <code>pre_registered</code> ; la requête d'authentification est incluse directement dans la requête VP.</td></tr>
+            <tr><td><code>definition</code></td><td>La définition de présentation pour ce type d'identifiant — voir <a href="https://identity.foundation/presentation-exchange/spec/v2.0.0/">DIF.PresentationExchange</a>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="rule" />
+
+    <section id="proxy">
+      <h2><span class="step">04</span> Proxy pour localhost</h2>
+      <p>Pour faire fonctionner le flux OpenID4VP en local, utilisez un service de proxy comme <strong>ngrok</strong> ou <strong>localtunnel</strong> afin de créer une URL publique — par exemple <code>https://proxyurl.ngrok.app</code> — qui redirige vers <code>http://localhost:3000</code>.</p>
+      <p>C'est nécessaire car le portefeuille exécuté sur votre mobile ou tablette ne peut pas atteindre <code>http://localhost:3000</code> au moment du partage des identifiants — cette adresse n'existe que sur votre propre machine.</p>
+
+      <div class="callout tip">
+        <span class="callout-label">Astuce</span>
+        <p>Ce proxy n'est utile que pour tester le partage d'identifiants avec un portefeuille mobile (flux multi-appareils ou même appareil ci-dessous). Si vous voulez simplement explorer l'interface dans votre navigateur, vous pouvez ignorer entièrement cette étape.</p>
+      </div>
+
+      <h3>Étapes</h3>
+      <ol class="steps">
+        <li>Démarrez votre proxy (ngrok, localtunnel…) vers le port <code>3000</code>.</li>
+        <li>Dans <code>docker-compose.yml</code>, remplacez chaque occurrence de <code>VERIFY_SERVICE_PROXY_FOR_LOCALHOST</code> par le nom d'hôte du proxy (par ex. <code>proxyurl.ngrok.app</code>, sans le <code>https://</code>).</li>
+        <li>Enregistrez le fichier <code>docker-compose.yml</code>.</li>
+      </ol>
+    </section>
+
+    <hr class="rule" />
+
+    <section id="multi-appareils">
+      <h2><span class="step">05</span> Flux multi-appareils</h2>
+      <p>Pour tester le flux multi-appareils (Cross Device) sur mobile ou tablette, scannez directement le QR code de la requête VP.</p>
+      <ul>
+        <li>Pour les identifiants utilisant <code>client_id_scheme: pre_registered</code>, le portefeuille ne pourra <strong>pas</strong> partager le VC : votre application Verify locale n'est pas pré-enregistrée auprès du portefeuille.</li>
+        <li>Pour les identifiants utilisant <code>client_id_scheme: did</code>, le portefeuille pourra partager le VC normalement.</li>
+        <li>Pour activer <code>pre_registered</code>, ajoutez votre <code>client_id</code> dans <code>mimoto-trusted-verifiers.json</code>, référencé par Inji Wallet.</li>
+      </ul>
+    </section>
+
+    <hr class="rule" />
+
+    <section id="meme-appareil">
+      <h2><span class="step">06</span> Flux même appareil</h2>
+      <p>Pour tester le flux même appareil (Same Device) sur mobile ou tablette, ouvrez l'URL de votre proxy, par exemple <code>https://proxyurl.ngrok.app</code>. L'application s'ouvrira directement.</p>
+    </section>
+
+    <hr class="rule" />
+
+    <section id="execution">
+      <h2><span class="step">07</span> Exécution avec Docker Compose</h2>
+
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><span class="term-label">Terminal</span></div>
+        <pre><code>cd docker-compose</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-label">Ports requis</span>
+        <p>Assurez-vous que les ports <code>3001</code> (interface), <code>8080</code> (API) et <code>5437</code> (PostgreSQL) sont libres sur votre machine.</p>
+      </div>
+
+      <p>Construisez et démarrez tous les services :</p>
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><span class="term-label">Terminal</span></div>
+        <pre><code><span class="comment"># si Docker Compose est installé en version autonome</span>
+docker-compose up -d
+
+<span class="comment"># si Docker Compose est installé comme plugin de la commande docker</span>
+docker compose up -d</code></pre>
+      </div>
+
+      <p>Cela démarre trois services :</p>
+      <div class="services">
+        <div class="service"><span class="name">verify-service</span><span class="role">API back-end</span></div>
+        <div class="service"><span class="name">verify-ui</span><span class="role">Interface front-end</span></div>
+        <div class="service"><span class="name">postgres</span><span class="role">Base de données</span></div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Service</th><th>Adresse</th></tr></thead>
+          <tbody>
+            <tr><td>Interface (UI)</td><td><code>http://localhost:3001</code></td></tr>
+            <tr><td>API — Swagger</td><td><code>http://localhost:8080/v1/verify/swagger-ui/index.html</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Arrêter l'application</h3>
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><span class="term-label">Terminal</span></div>
+        <pre><code>docker-compose down   <span class="comment"># version autonome</span>
+docker compose down   <span class="comment"># plugin docker</span></code></pre>
+      </div>
+
+      <h3>Réinitialisation complète (supprime aussi les volumes)</h3>
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><span class="term-label">Terminal</span></div>
+        <pre><code>docker-compose down -v   <span class="comment"># version autonome</span>
+docker compose down -v   <span class="comment"># plugin docker</span></code></pre>
+      </div>
+    </section>
+
+    <hr class="rule" />
+
+    <section id="depannage">
+      <h2><span class="step">08</span> Dépannage</h2>
+      <p>Pour consulter les journaux des conteneurs en continu :</p>
+      <div class="term">
+        <div class="term-bar"><span></span><span></span><span></span><span class="term-label">Terminal</span></div>
+        <pre><code>docker-compose logs -f</code></pre>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>Inji Verify est un projet du programme <a href="https://mosip.io">MOSIP</a>. Traduction française communautaire du guide Docker Compose — dépôt : <a href="https://github.com/inji/inji-verify">inji/inji-verify</a>.</p>
+</footer>
+
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+    var sections = links.map(function (a) {
+      return document.getElementById(a.getAttribute('href').slice(1));
+    });
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var idx = sections.indexOf(entry.target);
+        if (idx === -1) return;
+        if (entry.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          links[idx].classList.add('active');
+        }
+      });
+    }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function (s) { if (s) io.observe(s); });
+  })();
+</script>
+</body>
+</html>
